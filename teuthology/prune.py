@@ -48,7 +48,7 @@ def prune_archive(archive_dir, pass_days, remotes_days, dry_run=False):
 
 
 def listdir(path):
-    with safe_while(sleep=3, increment=3, tries=3) as proceed:
+    with safe_while(sleep=3, increment=3, tries=10) as proceed:
         while proceed():
             try:
                 return os.listdir(path)
