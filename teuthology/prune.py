@@ -72,6 +72,17 @@ def is_old_enough(file_name, days):
     return False
 
 
+def remove(path):
+    """
+    Attempt to recursively remove a directory. If an OSError is encountered,
+    log it and continue.
+    """
+    try:
+        shutil.rmtree(path)
+    except OSError:
+        log.exception()
+
+
 def maybe_remove_passes(run_dir, days, dry_run=False):
     """
     Remove entire job log directories if they are old enough and the job passed
@@ -99,7 +110,7 @@ def maybe_remove_passes(run_dir, days, dry_run=False):
             log.info("{job} is a {days}-day old passed job; removing".format(
                 job=item, days=days))
             if not dry_run:
-                shutil.rmtree(item)
+                remove(item)
 
 
 def maybe_remove_remotes(run_dir, days, dry_run=False):
@@ -126,4 +137,4 @@ def maybe_remove_remotes(run_dir, days, dry_run=False):
         log.info("{job} is {days} days old; removing remote logs".format(
             job=item, days=days))
         if not dry_run:
-            shutil.rmtree(remote_path)
+            remove(remote_path)
