@@ -90,7 +90,7 @@ def remove(path):
     try:
         shutil.rmtree(path)
     except OSError:
-        log.exception()
+        log.exception("Failed to remove %s !" % path)
 
 
 def maybe_remove_passes(run_dir, days, dry_run=False):
