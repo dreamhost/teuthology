@@ -39,7 +39,10 @@ def prune_archive(archive_dir, pass_days, remotes_days, dry_run=False):
         archive=archive_dir, count=len(os.listdir(archive_dir))))
     for child in listdir(archive_dir):
         item = os.path.join(archive_dir, child)
-        if os.path.isdir(item) and is_old_enough(item, max_days):
+        # Ensure that the path is not a symlink, is a directory, and is old
+        # enough to process
+        if (not os.path.islink(item) and os.path.isdir(item) and
+                is_old_enough(item, max_days)):
             run_dirs.append(item)
     for run_dir in run_dirs:
         log.debug("Processing %s ..." % run_dir)
