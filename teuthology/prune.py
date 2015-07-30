@@ -4,6 +4,7 @@ import shutil
 import time
 
 import teuthology
+from teuthology.contextutil import safe_while
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ def prune_archive(archive_dir, pass_days, remotes_days, dry_run=False):
     run_dirs = list()
     log.debug("Archive {archive} has {count} children".format(
         archive=archive_dir, count=len(os.listdir(archive_dir))))
-    for child in os.listdir(archive_dir):
+    for child in listdir(archive_dir):
         item = os.path.join(archive_dir, child)
         if os.path.isdir(item) and is_old_enough(item, max_days):
             run_dirs.append(item)
@@ -44,6 +45,12 @@ def prune_archive(archive_dir, pass_days, remotes_days, dry_run=False):
         log.debug("Processing %s ..." % run_dir)
         maybe_remove_passes(run_dir, pass_days, dry_run)
         maybe_remove_remotes(run_dir, remotes_days, dry_run)
+
+
+def listdir(path):
+    with safe_while(sleep=1, increment=1, tries=3) as proceed:
+        while proceed():
+            return os.listdir(path)
 
 
 def should_preserve(dir_name):
@@ -89,7 +96,7 @@ def maybe_remove_passes(run_dir, days, dry_run=False):
     """
     if days < 0:
         return
-    contents = os.listdir(run_dir)
+    contents = listdir(run_dir)
     if PRESERVE_FILE in contents:
         return
     for child in contents:
@@ -120,7 +127,7 @@ def maybe_remove_remotes(run_dir, days, dry_run=False):
     """
     if days < 0:
         return
-    contents = os.listdir(run_dir)
+    contents = listdir(run_dir)
     if PRESERVE_FILE in contents:
         return
     for child in contents:
