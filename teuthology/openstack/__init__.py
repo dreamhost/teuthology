@@ -533,7 +533,7 @@ ssh access           : ssh {identity}{username}@{ip} # logs in /usr/share/nginx/
             client_args['key_filename'] = self.key_filename
         client = connection.connect(**client_args)
         stdin, stdout, stderr = client.exec_command(command)
-        stdout.channel.settimeout(300)
+        stdout.channel.settimeout(900)
         out = ''
         try:
             out = stdout.read()
