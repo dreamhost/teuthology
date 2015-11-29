@@ -532,17 +532,16 @@ ssh access           : ssh {identity}{username}@{ip} # logs in /usr/share/nginx/
             log.debug("ssh overriding key with " + self.key_filename)
             client_args['key_filename'] = self.key_filename
         client = connection.connect(**client_args)
-        stdin, stdout, stderr = client.exec_command(command)
-        stdout.channel.settimeout(900)
-        out = ''
-        try:
-            out = stdout.read()
-            log.debug('ssh stdout ' + command + ' ' + out)
-        except Exception:
-            log.exception('ssh ' + command + ' failed')
-        err = stderr.read()
-        log.debug('ssh stderr ' + command + ' ' + err)
-        return out + ' ' + err
+        transport = client.get_transport()
+        channel = transport.open_session()
+        channel.get_pty()
+        channel.settimeout(900)
+        output = channel.makefile('r', 1)
+        log.debug(":ssh@" + ip + ":" + command)
+        channel.exec_command(command)
+        for line in iter(output.readline, b''):
+            log.info(line.strip())
+        return channel.recv_exit_status()
 
     def verify_openstack(self):
         """
