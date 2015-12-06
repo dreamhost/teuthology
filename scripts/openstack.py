@@ -6,7 +6,7 @@ import teuthology.openstack
 def main(argv=sys.argv[1:]):
     sys.exit(teuthology.openstack.main(parse_args(argv), argv))
 
-def parse_args(argv):
+def get_parser():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""
@@ -44,7 +44,6 @@ and analyze results.
     parser.add_argument(
         '--key-name',
         help='OpenStack keypair name',
-        required=True,
     )
     parser.add_argument(
         '--key-filename',
@@ -191,5 +190,7 @@ and analyze results.
         '--ceph-qa-suite-git-url',
         help=("git clone url for ceph-qa-suite"),
     )
+    return parser
 
-    return parser.parse_args(argv)
+def parse_args(argv):
+    return get_parser().parse_args(argv)
