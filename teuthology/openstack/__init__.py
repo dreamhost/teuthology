@@ -233,9 +233,31 @@ class OpenStack(object):
         """
         Return true if the image exists in OpenStack.
         """
-        found = misc.sh("openstack image list -f json --property name='" +
-                        self.image_name(image) + "'")
-        return len(json.loads(found)) > 0
+        return self.image_id(image) is not None
+
+    def image_id(self, name):
+        """
+        Return the uuid of the image in OpenStack
+        """
+        # --property filter of the CLI does not support multiple conditions
+        # We have to match both the owner of the image to the image, as well as
+        # the name of the image.
+        # We try to keep at least some of the filtering as early as possible,
+        # to avoid passing around a large blob of JSON
+        raw_image_name = self.image_name(name)
+        all = json.loads(misc.sh("openstack image list --long -f json \
+                --property name='%s'" % (raw_image_name, )))
+        images = filter(lambda _image: \
+                    _image['Owner'] == self.owner_id(), \
+                    all)
+        if len(images) == 0:
+            return None
+        elif len(images) > 1:
+            log.warn("Multiple images detected with same name (%s)! Picking first" % (raw_image_name, ))
+        return images[0]['ID']
+
+    def owner_id(self):
+        return os.environ['OS_TENANT_ID']
 
     def net_id(self, network):
         """
@@ -278,13 +300,13 @@ class OpenStack(object):
 
     def image(self, os_type, os_version):
         """
-        Return the image name for the given os_type and os_version. If the image
+        Return the image id for the given os_type and os_version. If the image
         does not exist it will be created.
         """
         name = self.type_version(os_type, os_version)
         if not self.image_exists(name):
             self.image_create(name)
-        return self.image_name(name)
+        return self.image_id(name)
 
     def flavor(self, hint, select):
         """
@@ -758,7 +780,7 @@ openstack security group rule create --proto udp --dst-port 53 teuthology # dns
             security_group = " --security-group teuthology"
         misc.sh(
             "openstack server create " +
-            " --image '" + self.image('ubuntu', '14.04') + "' " +
+            " --image '" + str(self.image('ubuntu', '14.04')) + "' " +
             " --flavor '" + self.flavor() + "' " +
             " " + self.net() +
             " --key-name " + self.args.key_name +

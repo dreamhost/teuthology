@@ -287,7 +287,7 @@ class ProvisionOpenStack(OpenStack):
             'volumes': config['openstack']['volumes'],
         }, resources_hint)
         self.init_user_data(os_type, os_version)
-        image = self.image(os_type, os_version)
+        image_id = self.image(os_type, os_version)
         if 'network' in config['openstack']:
             net = "--nic net-id=" + str(self.net_id(config['openstack']['network']))
         else:
@@ -297,7 +297,7 @@ class ProvisionOpenStack(OpenStack):
         misc.sh("flock --close /tmp/teuthology-server-create.lock openstack server create" +
                 " " + config['openstack'].get('server-create', '') +
                 " -f json " +
-                " --image '" + str(image) + "'" +
+                " --image '" + str(image_id) + "'" +
                 " --flavor '" + str(flavor) + "'" +
                 " --key-name teuthology " +
                 " --user-data " + str(self.user_data) +
