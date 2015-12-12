@@ -56,10 +56,6 @@ setup(
                       'ndg-httpsclient',
                       'pyasn1',
                       # the following may be removed when
-                      # https://bugs.launchpad.net/python-openstackclient/+bug/1510546
-                      # is resolved
-                      'cliff-tablib', # required to get a Field/Value output from openstack server show
-                      # the following may be removed when
                       # http://tracker.ceph.com/issues/14014
                       # is resolved
                       'netifaces',
