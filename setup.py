@@ -32,7 +32,7 @@ setup(
         'Topic :: System :: Filesystems',
     ],
     install_requires=['setuptools < 18.6',
-                      'gevent',
+                      'gevent==1.0.2', # avoid gevent 1.1rc2 which fails misc.sh
                       'MySQL-python == 1.2.3',
                       'PyYAML',
                       'argparse >= 1.2.1',
