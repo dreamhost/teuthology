@@ -529,15 +529,20 @@ function main() {
 
     local provider=$(verify_openstack)
 
-    eval local default_subnet=$(neutron subnet-list -f json -c cidr -c ip_version | jq '.[] | select(.ip_version == 4) | .cidr')
+    eval local default_subnet=$(neutron subnet-list -f json \
+		-c cidr -c ip_version -c tenant_id | \
+		jq '.[] | select(.ip_version == 4 and .tenant_id == "'${OS_TENANT_ID}'") | .cidr')
     if test -z "$default_subnet" ; then
+		# TODO: this can break when multiple tenants, should be replaced with 'openstack network list'
         default_subnet=$(nova tenant-network-list | grep / | cut -f6 -d' ' | head -1)
     fi
     : ${subnet:=$default_subnet}
 
     case $provider in
         entercloudsuite)
-            eval local network=$(neutron net-list -f json | jq '.[] | select(.subnets | contains("'$subnet'")) | .name')
+            eval local network=$(neutron net-list -f json \
+				-c tenant_id -c subnets -c name \
+				| jq '.[] | select(.tenant_id == "'${OS_TENANT_ID}'") | select(.subnets | contains("'$subnet'")) | .name')
             ;;
     esac
 
