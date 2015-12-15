@@ -394,9 +394,11 @@ function teardown_ansible() {
 }
 
 function remove_images() {
-    glance image-list --property-filter ownedby=teuthology | grep -v -e ---- -e 'Disk Format' | cut -f4 -d ' ' | while read image ; do
-        echo "DELETED iamge $image"
-        glance image-delete $image
+    openstack image list -f json --long --property ownedby=teuthology \
+    | jq -r ".[] | select(.Owner == \"${OS_TENANT_ID}\") | .ID" \
+    | while read image_id ; do
+        echo "DELETED image $image_id"
+        glance image-delete $image_id
     done
 }
 
